@@ -1,0 +1,11 @@
+name: 'Test AiiDA lab app'
+description: "Test an AiiDA lab app."
+inputs:
+  notebooks:
+    description: 'Which notebooks to execute for testing.'
+    default: '*.ipynb'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.notebooks }}
