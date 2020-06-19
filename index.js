@@ -12,6 +12,21 @@ const AIIDALAB_DEFAULT_IMAGE = 'aiidalab/aiidalab-docker-stack:latest';
 const SELENIUM_TESTS_IMAGE = 'aiidalab/aiidalab-test-app-action:selenium-tests';
 
 
+function getAppPath() {
+  if ( process.env.GITHUB_WORKSPACE ) {
+      if ( path.resolve(process.env.GITHUB_WORKSPACE) != path.resolve(__dirname)) {
+        return path.resolve(process.env.GITHUB_WORKSPACE);
+      } else {
+        core.warning("GITHUB_WORKSPACE is pointing to the current working directory!");
+        return path.join(__dirname, 'app'); // point to empty directory
+      }
+  } else {
+    core.warning("GITHUB_WORKSPACE env variable is not set!");
+    return path.join(__dirname, 'app'); // point to empty directory
+  }
+}
+
+
 async function _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath) {
   // We create the docker-compose on the fly to not need to package it.
   return composefile({
@@ -92,7 +107,7 @@ async function run() {
     const jupyterToken = 'aiidalab-test'
 
     const aiidalabImage = ( core.getInput('image') ) ? core.getInput('image') : AIIDALAB_DEFAULT_IMAGE;
-    const appPath = ( process.env.GITHUB_WORKSPACE ) ? process.env.GITHUB_WORKSPACE : __dirname;
+    const appPath = getAppPath();
 
     const browser = ( core.getInput('browser') ) ? core.getInput('browser') : 'chrome';
 
