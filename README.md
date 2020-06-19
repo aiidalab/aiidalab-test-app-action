@@ -1,6 +1,12 @@
+<p align="center">
+  <a href="https://github.com/actions/javascript-action/actions"><img alt="javscript-action status" src="https://github.com/actions/javascript-action/workflows/units-test/badge.svg"></a>
+</p>
+
 # aiidalab-test-app-action
 
 This action tests an AiiDA lab docker stack and AiiDA lab applications.
+
+See also the [aiidalab-hello-world app](https://github.com/aiidalab/aiidalab-hello-world) for an example on how to use this action for testing.
 
 # Usage
 
@@ -47,7 +53,7 @@ The tests bundled with the action will test whether basic platform generic pages
 To test a specific app, use the `action/checkout` action prior to using this action.
 This will mount the checked out app on the aiidalab instance under `/home/aiida/apps/app` and run some generic tests, e.g., whether the notebooks bundled with the app are accessible via app mode.
 
-# App specific tests..
+# Implement app specific tests
 
 To implement app specific tests, implement them using pytest and add them to the repository, e.g., in a `tests/` folder.
 For example:
@@ -66,4 +72,4 @@ def test_example(selenium, url):
     selenium.get_screenshot_as_file('screenshots/example.png')
 ```
 
-Important: The app path will *always* end in `.../app`, and does not depend on the app name.
+Important: The app will always be installed under the endpoint `app`; the name of the endpoint does not depend on the app name.
