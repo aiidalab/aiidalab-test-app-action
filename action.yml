@@ -1,11 +1,13 @@
 name: 'Test AiiDA lab app'
 description: "Test an AiiDA lab app."
 inputs:
-  notebooks:
-    description: 'Which notebooks to execute for testing.'
-    default: '*.ipynb'
+  image:
+    description: 'The aiidalab docker image to test on.'
+    default: 'aiidalab/aiidalab-docker-stack:latest'
+  browser:
+    description: 'Which browser to execute tests for.'
+    default: 'chrome'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.notebooks }}
+  using: 'node12'
+  main: 'index.js'
+  post: 'cleanup.js'
