@@ -45,6 +45,14 @@ jobs:
 ```
 <!-- end usage -->
 
+To run tests locally, use the `run-test.sh` script.
+For example, to run tests locally for the aiidalab-hello-world app, run:
+
+```console
+$ git clone https://github.com/aiidalab/aiidalab-hello-world.git
+$ ./run-tests.sh aiidalab-hello-world/
+```
+
 # Executed tests
 
 The action will execute tests using pytest in combination with selenium.

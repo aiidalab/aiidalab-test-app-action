@@ -7,6 +7,7 @@ const path = require('path');
 const process = require('process');
 const compose = require('docker-compose');
 const composefile = require('composefile');
+const crypto = require('crypto');
 
 const AIIDALAB_DEFAULT_IMAGE = 'aiidalab/aiidalab-docker-stack:latest';
 const SELENIUM_TESTS_IMAGE = 'aiidalab/aiidalab-test-app-action:selenium-tests';
@@ -76,10 +77,14 @@ async function _create_docker_compose_file(context, aiidalabImage, jupyterToken,
 }
 
 
-async function startDockerCompose(context, aiidalabImage, jupyterToken, appPath) {
+async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath) {
+  const context = path.join(__dirname, projectName);
   return io.mkdirP(context)
     .then(() => { return _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath); })
-    .then(() => { return compose.upAll({ cwd: context, log: true}); });
+    .then(() => { return compose.upAll({
+        cwd: context,
+        composeOptions: [["--project-name", projectName ]],
+        log: true})});
 }
 
 
@@ -101,9 +106,9 @@ async function startSeleniumTests(network, jupyterToken, appPath, browser) {
 // most @actions toolkit packages have async methods
 async function run() {
   try {
-    const contextBase = 'aiidalabtests';
-    const network = 'aiidalabtests_default';
-    const composeContext = path.join(__dirname, contextBase);
+    const projectName = ( process.env.AIIDALAB_TESTS_WORKDIR ) ?
+      process.env.AIIDALAB_TESTS_WORKDIR : `aiidalabtests${ crypto.randomBytes(8).toString('hex') }`;
+    const network = projectName + '_default';
     const jupyterToken = 'aiidalab-test'
 
     const aiidalabImage = ( core.getInput('image') ) ? core.getInput('image') : AIIDALAB_DEFAULT_IMAGE;
@@ -112,7 +117,7 @@ async function run() {
     const browser = ( core.getInput('browser') ) ? core.getInput('browser') : 'chrome';
 
     // Run tests...
-    return startDockerCompose(composeContext, aiidalabImage, jupyterToken, appPath)
+    return startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath)
       .then(
         () => { return startSeleniumTests(network, jupyterToken, appPath, browser); },
         err => { throw new Error("Unable to start docker-compose: " + err); })
