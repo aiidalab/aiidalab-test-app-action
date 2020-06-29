@@ -16,7 +16,7 @@ jobs:
       - name: build image
         uses: docker/build-push-action@v1
         with:
-          path: selenium
+          path: selenium-tests
           repository: aiidalab/aiidalab-test-app-action
           tags: selenium-tests
           username: ${{ secrets.DOCKER_USERNAME }}
