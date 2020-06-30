@@ -81,3 +81,7 @@ def test_example(selenium, url):
 ```
 
 Important: The app will always be installed under the endpoint `app`; the name of the endpoint does not depend on the app name.
+
+# Development
+
+The development of this action follows the toolkit guidelines: https://github.com/actions/toolkit/blob/master/docs/action-versioning.md
