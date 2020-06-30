@@ -7,6 +7,9 @@ inputs:
   browser:
     description: 'Which browser to execute tests for.'
     default: 'chrome'
+  notebooks:
+    description: 'Which notebooks to test with generic tests.'
+    default: '**/[!.]*.ipynb'
 runs:
   using: 'node12'
   main: 'index.js'

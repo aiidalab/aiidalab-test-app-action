@@ -42,6 +42,11 @@ jobs:
         with:
           image: aiidalab/aiidalab-docker-stack:${{ matrix.tag }}
           browser: ${{ matrix.browser }}
+          # Use a comma-separated list of glob-patterns to specify which
+          # notebooks to test with generic tests.
+          # Defaults to all non-hidden notebook files: '**/[!.]*.ipynb'
+          # Use '!' to skip all generic tests.
+          notebooks: main.ipynb,subdir/*.ipynb
 ```
 <!-- end usage -->
 

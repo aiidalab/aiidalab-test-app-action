@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import pytest
 from selenium.webdriver.common.by import By
 
@@ -14,15 +15,16 @@ app_installed = pytest.mark.skipif(
 
 
 def _find_notebooks():
-    for path in APP_PATH.glob('**/[!.]*.ipynb'):
-        nb = path.relative_to(APP_PATH)
-        marks = pytest.mark.xfail if str(nb) == 'example-import-error.ipynb' else []
-        yield pytest.param(nb, id=str(nb), marks=marks)
+    globs = os.environ.get('APP_NOTEBOOKS', '').split(',')
+    for glob in globs:
+        for path in APP_PATH.glob(glob):
+            nb = path.relative_to(APP_PATH)
+            yield pytest.param(nb, id=str(nb))
 
 
-for_all_notebooks = pytest.mark.parametrize(
-    'notebook',
-    list(_find_notebooks()))
+@pytest.fixture(params=_find_notebooks())
+def notebook(request):
+    return request.param
 
 
 @app_installed
@@ -37,7 +39,6 @@ def test_tree_apps_app(selenium, url):
 
 
 @app_installed
-@for_all_notebooks
 def test_load_notebook(selenium, url, notebook):
     selenium.get(url('apps/apps/app/' + str(notebook)))
     selenium.find_element(By.ID, 'ipython-main-app')

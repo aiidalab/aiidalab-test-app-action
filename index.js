@@ -28,6 +28,18 @@ function getAppPath() {
 }
 
 
+function getNotebooks() {
+  // Determine the pattern for the notebooks to test with generic tests.
+  if (core.getInput('notebooks')) {
+    return core.getInput('notebooks');
+  } else if (process.env.AIIDALAB_APP_TESTS_NOTEBOOKS) {
+    return process.env.AIIDALAB_APP_TESTS_NOTEBOOKS;
+  } else {
+    return '**/[!.]*.ipynb';
+  }
+}
+
+
 async function _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath) {
   // We create the docker-compose on the fly to not need to package it.
   return composefile({
@@ -88,13 +100,14 @@ async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appP
 }
 
 
-async function startSeleniumTests(network, jupyterToken, appPath, browser) {
+async function startSeleniumTests(network, jupyterToken, appPath, browser, notebooks) {
   return exec.exec(
     'docker', [
       'run',
       '--env', `AIIDALAB_HOST=aiidalab`,
       '--env', `SELENIUM_HOST=seleniumhub`,
       '--env', `JUPYTER_TOKEN=${jupyterToken}`,
+      '--env', `APP_NOTEBOOKS=${notebooks}`,
       '--network=' + network,
       '--mount', `type=bind,src=${appPath},dst=/selenium-tests/app`,
       SELENIUM_TESTS_IMAGE,
@@ -115,11 +128,12 @@ async function run() {
     const appPath = getAppPath();
 
     const browser = ( core.getInput('browser') ) ? core.getInput('browser') : 'chrome';
+    const notebooks = getNotebooks();
 
     // Run tests...
     return startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath)
       .then(
-        () => { return startSeleniumTests(network, jupyterToken, appPath, browser); },
+        () => { return startSeleniumTests(network, jupyterToken, appPath, browser, notebooks); },
         err => { throw new Error("Unable to start docker-compose: " + err); })
       .then(
         () => { console.log("Completed selenium tests.")},
