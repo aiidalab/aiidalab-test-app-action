@@ -47,6 +47,12 @@ jobs:
           # Defaults to all non-hidden notebook files: '**/[!.]*.ipynb'
           # Use '!' to skip all generic tests.
           notebooks: main.ipynb,subdir/*.ipynb
+
+      - name: Upload screenshots as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Screenshots-${{ matrix.tag }}-${{ matrix.browser }}
+          path: 'screenshots/'
 ```
 <!-- end usage -->
 
