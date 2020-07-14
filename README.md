@@ -57,6 +57,10 @@ For example, to run tests locally for the aiidalab-hello-world app, run:
 $ git clone https://github.com/aiidalab/aiidalab-hello-world.git
 $ ./run-tests.sh aiidalab-hello-world/
 ```
+All arguments to ``run-test.sh`` following ``--`` are directly forwarded to ``pytest``, for example:
+```console
+$ ./run-tests.sh aiidalab-hello-world/ -- --maxfail=3 -k example --verbose
+```
 
 # Executed tests
 
