@@ -8,6 +8,7 @@ const process = require('process');
 const compose = require('docker-compose');
 const composefile = require('composefile');
 const crypto = require('crypto');
+const yargs = require('yargs');
 
 const AIIDALAB_DEFAULT_IMAGE = 'aiidalab/aiidalab-docker-stack:latest';
 const SELENIUM_TESTS_IMAGE = 'aiidalab/aiidalab-test-app-action:selenium-tests';
@@ -100,7 +101,7 @@ async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appP
 }
 
 
-async function startSeleniumTests(network, jupyterToken, appPath, browser, notebooks) {
+async function startSeleniumTests(network, jupyterToken, appPath, browser, notebooks, extra) {
   return exec.exec(
     'docker', [
       'run',
@@ -112,13 +113,18 @@ async function startSeleniumTests(network, jupyterToken, appPath, browser, noteb
       '--mount', `type=bind,src=${appPath},dst=/selenium-tests/app`,
       SELENIUM_TESTS_IMAGE,
       '--capability', 'browserName', browser,
-    ])
+    ].concat(extra));
 }
 
 
 // most @actions toolkit packages have async methods
 async function run() {
   try {
+
+    const argv = yargs
+      .help()
+      .argv;
+
     const projectName = ( process.env.AIIDALAB_TESTS_WORKDIR ) ?
       process.env.AIIDALAB_TESTS_WORKDIR : `aiidalabtests${ crypto.randomBytes(8).toString('hex') }`;
     const network = projectName + '_default';
@@ -133,7 +139,7 @@ async function run() {
     // Run tests...
     return startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath)
       .then(
-        () => { return startSeleniumTests(network, jupyterToken, appPath, browser, notebooks); },
+        () => { return startSeleniumTests(network, jupyterToken, appPath, browser, notebooks, argv._); },
         err => { throw new Error("Unable to start docker-compose: " + err); })
       .then(
         () => { console.log("Completed selenium tests.")},
