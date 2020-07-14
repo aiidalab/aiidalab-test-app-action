@@ -126,8 +126,9 @@ async function run() {
       .option('screenshots', {
         alias: 's',
         description: 'Path to bind the screenshots volume to.',
-        normalize: 'true',  // is a path
       })
+      .default('screenshots', core.getInput('screenshots'))
+      .normalize('screenshots')  // normalize path
       .help()
       .argv;
 
