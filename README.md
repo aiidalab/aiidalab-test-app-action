@@ -62,6 +62,11 @@ All arguments to ``run-test.sh`` following ``--`` are directly forwarded to ``py
 $ ./run-tests.sh aiidalab-hello-world/ -- --maxfail=3 -k example --verbose
 ```
 
+To access screenshots that were taken during the test, use the ``--screenshots`` (``-s``) option:
+```console
+$ ./run-tests.sh aiidalab-hello-world/ --screenshots=path/to/screenshots
+```
+
 # Executed tests
 
 The action will execute tests using pytest in combination with selenium.
