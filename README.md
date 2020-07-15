@@ -47,6 +47,12 @@ jobs:
           # Defaults to all non-hidden notebook files: '**/[!.]*.ipynb'
           # Use '!' to skip all generic tests.
           notebooks: main.ipynb,subdir/*.ipynb
+
+      - name: Upload screenshots as artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Screenshots-${{ matrix.tag }}-${{ matrix.browser }}
+          path: 'screenshots/'
 ```
 <!-- end usage -->
 
@@ -60,6 +66,11 @@ $ ./run-tests.sh aiidalab-hello-world/
 All arguments to ``run-test.sh`` following ``--`` are directly forwarded to ``pytest``, for example:
 ```console
 $ ./run-tests.sh aiidalab-hello-world/ -- --maxfail=3 -k example --verbose
+```
+
+To access screenshots that were taken during the test, use the ``--screenshots`` (``-s``) option:
+```console
+$ ./run-tests.sh aiidalab-hello-world/ --screenshots=path/to/screenshots
 ```
 
 # Executed tests

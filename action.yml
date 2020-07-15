@@ -10,6 +10,9 @@ inputs:
   notebooks:
     description: 'Which notebooks to test with generic tests.'
     default: '**/[!.]*.ipynb'
+  screenshots:
+    description: 'Path to store screenshots.'
+    default: 'screenshots/'
 runs:
   using: 'node12'
   main: 'index.js'
