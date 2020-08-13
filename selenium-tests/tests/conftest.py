@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlsplit, urlunsplit, parse_qs, urlencode
 
 import pytest
 
@@ -17,7 +18,14 @@ def selenium(selenium):
 
 @pytest.fixture
 def url():
-    def url_(path=''):
-        return f'http://{AIIDALAB_HOST}:{AIIDALAB_PORT}/{path}?token={JUPYTER_TOKEN}'
+    def url_(url=''):
+        parsed_url = urlsplit(url)
+        query_string = parse_qs(parsed_url.query)
+        query_string.setdefault("token", JUPYTER_TOKEN)
+        return urlunsplit(parsed_url._replace(
+            scheme='http',
+            netloc=f"{AIIDALAB_HOST}:{AIIDALAB_PORT}",
+            query=urlencode(query_string, doseq=True)
+            ))
 
     return url_
