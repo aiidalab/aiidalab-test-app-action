@@ -41,7 +41,7 @@ function getNotebooks() {
 }
 
 
-async function _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath) {
+async function _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath, appName) {
   // We create the docker-compose on the fly to not need to package it.
   return composefile({
     outputFolder: context,
@@ -49,7 +49,7 @@ async function _create_docker_compose_file(context, aiidalabImage, jupyterToken,
     services: {
       aiidalab: {
         image: aiidalabImage,
-        volumes: [ `${appPath}/:/home/aiida/apps/app` ],
+        volumes: [ `${appPath}/:/home/aiida/apps/${appName}` ],
         expose: ['8888'],
         environment: {
           AIIDALAB_SETUP: 'true',
@@ -90,10 +90,10 @@ async function _create_docker_compose_file(context, aiidalabImage, jupyterToken,
 }
 
 
-async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath) {
+async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath, appName) {
   const context = path.join(__dirname, projectName);
   return io.mkdirP(context)
-    .then(() => { return _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath); })
+    .then(() => { return _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath, appName); })
     .then(() => { return compose.upAll({
         cwd: context,
         composeOptions: [["--project-name", projectName ]],
@@ -101,7 +101,7 @@ async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appP
 }
 
 
-async function startSeleniumTests(network, jupyterToken, appPath, browser, notebooks, screenshots, extra) {
+async function startSeleniumTests(network, jupyterToken, appPath, appName, browser, notebooks, screenshots, extra) {
   return exec.exec(
     'docker', [
       'run',
@@ -110,7 +110,7 @@ async function startSeleniumTests(network, jupyterToken, appPath, browser, noteb
       '--env', `JUPYTER_TOKEN=${jupyterToken}`,
       '--env', `APP_NOTEBOOKS=${notebooks}`,
       '--network=' + network,
-      '--mount', `type=bind,src=${appPath},dst=/selenium-tests/app`,
+      '--mount', `type=bind,src=${appPath},dst=/selenium-tests/${appName}`,
       ...(screenshots ? ['--mount', `type=bind,src=${screenshots},dst=/selenium-tests/screenshots`] : []),
       SELENIUM_TESTS_IMAGE,
       '--capability', 'browserName', browser,
@@ -129,6 +129,11 @@ async function run() {
       })
       .default('screenshots', core.getInput('screenshots'))
       .normalize('screenshots')  // normalize path
+      .option('name', {
+        alias: 'n',
+        description: 'The name of the app within the apps folder.',
+      })
+      .default('name', core.getInput('name'))
       .help()
       .argv;
 
@@ -136,6 +141,8 @@ async function run() {
     if ( screenshots ) {
       await io.mkdirP( screenshots );
     }
+
+    const appName = argv.name ? argv.name : 'app' ;
 
     const projectName = ( process.env.AIIDALAB_TESTS_WORKDIR ) ?
       process.env.AIIDALAB_TESTS_WORKDIR : `aiidalabtests${ crypto.randomBytes(8).toString('hex') }`;
@@ -149,9 +156,9 @@ async function run() {
     const notebooks = getNotebooks();
 
     // Run tests...
-    return startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath)
+    return startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath, appName)
       .then(
-        () => { return startSeleniumTests(network, jupyterToken, appPath, browser, notebooks, screenshots, argv._); },
+        () => { return startSeleniumTests(network, jupyterToken, appPath, appName, browser, notebooks, screenshots, argv._); },
         err => { throw new Error("Unable to start docker-compose: " + err); })
       .then(
         () => { console.log("Completed selenium tests.")},

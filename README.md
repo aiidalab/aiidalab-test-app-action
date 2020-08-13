@@ -93,14 +93,22 @@ from selenium.webdriver.common.by import By
 
 
 def test_example(selenium, url):
-    selenium.get(url('apps/apps/app/example.ipynb'))
+    selenium.get(url('apps/apps/my-app/example.ipynb'))
     selenium.find_element(By.ID, 'ipython-main-app')
     selenium.find_element(By.ID, 'notebook-container')
     selenium.find_element(By.CLASS_NAME, 'jupyter-widgets-view')
     selenium.get_screenshot_as_file('screenshots/example.png')
 ```
 
-Important: The app will always be installed under the endpoint `app`; the name of the endpoint does not depend on the app name.
+Important: The app will by default be installed under the endpoint `app`; however it is advisable to override this name and use a specific endpoint after implementing app-specific test with the `name` action parameter.
+The generic app tests will then be skipped.
+
+```yaml
+      - name: Test app
+        uses: aiidalab/aiidalab-test-app-action@v2
+        with:
+          name: my-app
+```
 
 # Development
 
