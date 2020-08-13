@@ -13,6 +13,9 @@ inputs:
   screenshots:
     description: 'Path to store screenshots.'
     default: 'screenshots/'
+  name:
+    description: 'Name of the app, determines the mount path.'
+    default: 'app'
 runs:
   using: 'node12'
   main: 'index.js'
