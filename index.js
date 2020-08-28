@@ -34,6 +34,9 @@ function getNotebooks() {
   if (core.getInput('notebooks')) {
     return core.getInput('notebooks');
   } else if (process.env.AIIDALAB_APP_TESTS_NOTEBOOKS) {
+    core.warning(
+      "The use of the $AIIDALAB_APP_TESTS_NOTEBOOK environment variable " +
+      "is deprecated and will be removed with the next major version change!")
     return process.env.AIIDALAB_APP_TESTS_NOTEBOOKS;
   } else {
     return '**/[!.]*.ipynb';
