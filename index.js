@@ -89,6 +89,17 @@ async function startDockerCompose(projectName, aiidalabImage, jupyterToken, appP
 }
 
 
+async function cleanUp(projectName) {
+    if ( process.env.GITHUB_ACTIONS !== 'true' ) {
+      const context = path.join(__dirname, projectName);
+      return compose.down({cwd: context, log: true})
+        .then(
+          () => { return io.rmRF(context); },
+          err => { throw new Error("Unable to shutdown docker-compose: " + err); })
+    }
+}
+
+
 async function startSeleniumTests(network, jupyterToken, appPath, appName, browser, notebooks, screenshots, extra) {
   return exec.exec(
     'docker', [
@@ -175,6 +186,7 @@ async function run() {
         () => { console.log("Completed selenium tests.")},
         err => { throw new Error("Failed to execute selenium tests: " + err); })
       .catch(err => { core.setFailed('Failed to execute selenium tests with error:\n' + err); })
+      .then(() => { return cleanUp(projectName); })
   }
   catch (error) {
     core.setFailed(error.message);
