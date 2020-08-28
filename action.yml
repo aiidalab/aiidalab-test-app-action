@@ -16,6 +16,9 @@ inputs:
   name:
     description: 'Name of the app, determines the mount path.'
     default: 'app'
+  bundled:
+    description: 'If set, the app is not installed (mounted) on the test image.'
+    default: 'false'
 runs:
   using: 'node12'
   main: 'index.js'

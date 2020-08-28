@@ -37,7 +37,7 @@ async function _create_docker_compose_file(context, aiidalabImage, jupyterToken,
     services: {
       aiidalab: {
         image: aiidalabImage,
-        volumes: [ `${appPath}/:/home/aiida/apps/${appName}` ],
+        ...( (appPath && appName) && {volumes:  [ `${appPath}:/home/aiida/apps/${appName}` ] } ),
         expose: ['8888'],
         environment: {
           AIIDALAB_SETUP: 'true',
@@ -142,6 +142,12 @@ async function run() {
         description: 'The name of the app within the apps folder.',
       })
       .default('name', core.getInput('name') || 'app')
+      .option('bundled', {
+        description: 'Assume that the app is pre-installed and test that one using the ' +
+                     'tests in the provided app-path.',
+        type: 'boolean',
+      })
+      .default('bundled', core.getInput('bundled').toLowerCase() === 'true' || false)
       .option('browser', {
         description: 'Specify which browser to use.',
         choices: ['chrome', 'firefox', 'opera'],
@@ -172,6 +178,7 @@ async function run() {
     core.debug(`name: ${argv.name}`);
     core.debug(`screenshots: ${argv.screenshots}`)
     core.debug(`browser: ${argv.browser}`)
+    core.debug(`bundled: ${argv.bundled}`)
 
     // Make screenshots directory if set
     if ( argv.screenshots ) {
