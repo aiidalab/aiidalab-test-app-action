@@ -12,4 +12,6 @@ COPY entrypoint.sh test* ./
 
 ENV AIIDALAB_HOST=aiidalab AIIDALAB_PORT=8888 SELENIUM_HOST=seleniumhub SELENIUM_PORT=4444
 
+ENV APP_NOTEBOOKS='**/[!.]*.ipynb'
+
 ENTRYPOINT [ "./entrypoint.sh" ]
