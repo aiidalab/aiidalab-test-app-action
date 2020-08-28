@@ -9,7 +9,7 @@ export AIIDALAB_TESTS_WORKDIR="aiidalabtests"`openssl rand -hex 8`
 
 SELENIUM_TESTS_IMAGE="aiidalab/aiidalab-test-app-action:selenium-tests"
 
-GITHUB_WORKSPACE="$1"
+APP_PATH="$1"
 shift
 
 function cleanup {
@@ -21,6 +21,5 @@ function cleanup {
   fi
 }
 trap cleanup EXIT
-
-docker build --tag="${SELENIUM_TESTS_IMAGE}" selenium-tests/ && GITHUB_WORKSPACE="${GITHUB_WORKSPACE}" node index.js "$@"
+docker build --tag="${SELENIUM_TESTS_IMAGE}" selenium-tests/ && node index.js -a ${APP_PATH} "$@"
 echo "${AIIDALAB_TESTS_WORKDIR}"

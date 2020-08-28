@@ -14,21 +14,6 @@ const AIIDALAB_DEFAULT_IMAGE = 'aiidalab/aiidalab-docker-stack:latest';
 const SELENIUM_TESTS_IMAGE = 'aiidalab/aiidalab-test-app-action:selenium-tests';
 
 
-function getAppPath() {
-  if ( process.env.GITHUB_WORKSPACE ) {
-      if ( path.resolve(process.env.GITHUB_WORKSPACE) != path.resolve(__dirname)) {
-        return path.resolve(process.env.GITHUB_WORKSPACE);
-      } else {
-        core.warning("GITHUB_WORKSPACE is pointing to the current working directory!");
-        return path.join(__dirname, 'app'); // point to empty directory
-      }
-  } else {
-    core.warning("GITHUB_WORKSPACE env variable is not set!");
-    return path.join(__dirname, 'app'); // point to empty directory
-  }
-}
-
-
 function getNotebooks() {
   // Determine the pattern for the notebooks to test with generic tests.
   if (core.getInput('notebooks')) {
@@ -126,43 +111,65 @@ async function run() {
   try {
 
     const argv = yargs
-      .option('screenshots', {
-        alias: 's',
-        description: 'Path to bind the screenshots volume to.',
+      .option('app-path', {
+        alias: 'a',
+        description: 'Path to the app\'s directory.',
       })
-      .default('screenshots', core.getInput('screenshots'))
-      .normalize('screenshots')  // normalize path
+      .default('app-path', process.env.GITHUB_WORKSPACE || undefined)
+      .normalize('app-path') // normalize path
+      .demandOption(
+        'app-path',
+        "Please set the app-path either directly with -a/-app-path=path/to/app " +
+        "or via the $GITHUB_WORKSPACE environment variable.")
+      .option('image', {
+        description: 'The aiidalab image to test on.',
+        alias: 'i',
+      })
+      .default('image', core.getInput('image') || AIIDALAB_DEFAULT_IMAGE)
       .option('name', {
         alias: 'n',
         description: 'The name of the app within the apps folder.',
       })
-      .default('name', core.getInput('name'))
+      .default('name', core.getInput('name') || 'app')
+      .option('browser', {
+        description: 'Specify which browser to use.',
+        choices: ['chrome', 'firefox', 'opera'],
+      })
+      .default('browser', core.getInput('browser') || 'chrome')
+      .option('screenshots', {
+        alias: 's',
+        description: 'Path to bind the screenshots volume to.',
+      })
+      .default('screenshots', core.getInput('screenshots') ? path.resolve(core.getInput('screenshots')) : undefined)
+      .normalize('screenshots')  // normalize path
+      .option('notebooks', {
+        description: 'Which notebooks to test with generic tests.'
+      })
+      .default('notebooks', getNotebooks())
       .help()
       .argv;
 
-    const screenshots = argv.screenshots ? path.resolve(argv.screenshots) : '' ;
-    if ( screenshots ) {
-      await io.mkdirP( screenshots );
-    }
-
-    const appName = argv.name ? argv.name : 'app' ;
-    core.debug(`app name: ${appName}`);
-
-    const projectName = ( process.env.AIIDALAB_TESTS_WORKDIR ) ?
-      process.env.AIIDALAB_TESTS_WORKDIR : `aiidalabtests${ crypto.randomBytes(8).toString('hex') }`;
+    // Set some additional constants required for the docker-compose context.
+    const projectName = process.env.AIIDALAB_TEST_WORKDIR || `aiidalabtests${ crypto.randomBytes(8).toString('hex') }`;
     const network = projectName + '_default';
     const jupyterToken = 'aiidalab-test'
 
-    const aiidalabImage = ( core.getInput('image') ) ? core.getInput('image') : AIIDALAB_DEFAULT_IMAGE;
-    const appPath = getAppPath();
+    // Provide some context that could help during debugging.
+    core.debug(`image: ${argv.image}`)
+    core.debug(`app-path: ${argv.appPath}`)
+    core.debug(`name: ${argv.name}`);
+    core.debug(`screenshots: ${argv.screenshots}`)
+    core.debug(`browser: ${argv.browser}`)
 
-    const browser = ( core.getInput('browser') ) ? core.getInput('browser') : 'chrome';
-    const notebooks = getNotebooks();
+    // Make screenshots directory if set
+    if ( argv.screenshots ) {
+      await io.mkdirP( argv.screenshots );
+    }
 
     // Run tests...
-    return startDockerCompose(projectName, aiidalabImage, jupyterToken, appPath, appName)
+    return startDockerCompose(projectName, argv.image, jupyterToken, argv.bundled ? "" : argv.appPath, argv.bundled ? "" : argv.name)
       .then(
-        () => { return startSeleniumTests(network, jupyterToken, appPath, appName, browser, notebooks, screenshots, argv._); },
+        () => { return startSeleniumTests(network, jupyterToken, argv.appPath, argv.name, argv.browser, argv.notebooks, argv.screenshots, argv._); },
         err => { throw new Error("Unable to start docker-compose: " + err); })
       .then(
         () => { console.log("Completed selenium tests.")},
