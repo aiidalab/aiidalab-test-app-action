@@ -121,13 +121,11 @@ def test_example(selenium, url):
     selenium.find_element(By.CLASS_NAME, 'jupyter-widgets-view')
     selenium.get_screenshot_as_file('screenshots/example.png')
 ```
-
-Important: The app will by default be installed under the endpoint `app`; however it is advisable to override this name and use a specific endpoint after implementing app-specific test with the `name` action parameter.
-The generic app tests will then be skipped.
-
 Using the `url` fixture we do not need to worry about the exact location (host and port) of the AiiDAlab test instance.
 The action will automatically form a URL that should be reachable for the given test environment.
 
+Important: The app will by default be installed under the endpoint `app`; however it is advisable to override this name and use a specific endpoint after implementing app-specific test with the `name` action parameter.
+The generic app tests will then be skipped.
 ```yaml
       - name: Test app
         uses: aiidalab/aiidalab-test-app-action@v2
