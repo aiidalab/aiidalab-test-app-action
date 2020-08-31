@@ -164,6 +164,18 @@ async function run() {
       })
       .default('notebooks', getNotebooks())
       .coerce(['app-path', 'screenshots'], path_ => path_ ? path.resolve(path_) : path_ )
+      .coerce('app-path', (appPath) => {
+        if ( path.resolve(appPath) == path.resolve(__dirname) ) {
+          if ( process.env.GITHUB_ACTIONS == 'true' ) {
+            core.warning(
+              "The app-path is pointing to the current working directory! " +
+              "Make sure to checkout the app before running this action.");
+            return path.join(__dirname, 'app'); // point to empty directory
+          } else {
+            throw new Error("The app-path points to the current working directory.");
+          }
+        }
+      })
       .help()
       .argv;
 
