@@ -126,7 +126,7 @@ async function run() {
         alias: 'a',
         description: 'Path to the app\'s directory.',
       })
-      .default('app-path', process.env.GITHUB_WORKSPACE || undefined)
+      .default('app-path', process.env.GITHUB_WORKSPACE || 'app/')
       .normalize('app-path') // normalize path
       .demandOption(
         'app-path',
