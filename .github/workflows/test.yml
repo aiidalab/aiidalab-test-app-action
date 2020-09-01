@@ -22,3 +22,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: ./
+
+  test-with-hello-world-app:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: aiidalab/aiidalab-hello-world
+        ref: v1.0.0
+    - uses: actions/checkout@v2
+      with:
+        path: .action/
+    - uses: ./.action/
+      with:
+        image: aiidalab/aiidalab-docker-stack:20.08.3
