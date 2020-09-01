@@ -29,6 +29,24 @@ function getNotebooks() {
 }
 
 
+function _checkAppPath(appPath) {
+  // Check whether the appPath points to the current working directory.
+  // This is only tolerated in the context of a GitHub actions workflow, but a warning is emitted.
+  if ( path.resolve(appPath) == path.resolve(__dirname) ) {  // appPath points to current directory
+    if ( process.env.GITHUB_ACTIONS == 'true' ) {
+      core.warning(
+        "The app-path is pointing to the current working directory! " +
+        "Make sure to checkout the app before running this action.");
+      return path.join(__dirname, 'app'); // point to empty directory
+    } else {
+      throw new Error("The app-path may not point to the current working directory.");
+    }
+  } else {
+    return appPath;
+  }
+}
+
+
 async function _create_docker_compose_file(context, aiidalabImage, jupyterToken, appPath, appName) {
   // We create the docker-compose on the fly to not need to package it.
   return composefile({
@@ -128,10 +146,6 @@ async function run() {
       })
       .default('app-path', process.env.GITHUB_WORKSPACE || 'app/')
       .normalize('app-path') // normalize path
-      .demandOption(
-        'app-path',
-        "Please set the app-path either directly with -a/-app-path=path/to/app " +
-        "or via the $GITHUB_WORKSPACE environment variable.")
       .option('image', {
         description: 'The aiidalab image to test on.',
         alias: 'i',
@@ -164,18 +178,7 @@ async function run() {
       })
       .default('notebooks', getNotebooks())
       .coerce(['app-path', 'screenshots'], path_ => path_ ? path.resolve(path_) : path_ )
-      .coerce('app-path', (appPath) => {
-        if ( path.resolve(appPath) == path.resolve(__dirname) ) {
-          if ( process.env.GITHUB_ACTIONS == 'true' ) {
-            core.warning(
-              "The app-path is pointing to the current working directory! " +
-              "Make sure to checkout the app before running this action.");
-            return path.join(__dirname, 'app'); // point to empty directory
-          } else {
-            throw new Error("The app-path points to the current working directory.");
-          }
-        }
-      })
+      .coerce('app-path', _checkAppPath)
       .help()
       .argv;
 
