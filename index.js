@@ -177,8 +177,8 @@ async function run() {
         description: 'Which notebooks to test with generic tests.'
       })
       .default('notebooks', getNotebooks())
-      .coerce(['app-path', 'screenshots'], path_ => path_ ? path.resolve(path_) : path_ )
       .coerce('app-path', _checkAppPath)
+      .coerce(['app-path', 'screenshots'], path_ => path_ ? path.resolve(path_) : path_ )
       .help()
       .argv;
 
